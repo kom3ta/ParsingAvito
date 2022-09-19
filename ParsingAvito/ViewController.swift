@@ -10,7 +10,13 @@ import UIKit
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     var company: Company?
-    var root: Root?
+    var root: Root? {
+        didSet {
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        }
+    }
     
     private let tableView: UITableView = {
         let table = UITableView(frame: .zero, style: .grouped)
@@ -42,6 +48,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 let decoder = JSONDecoder()
                 let root = try decoder.decode(Root.self, from: data)
                 print(root.company.employees.count)
+                self.root = root
             }catch{
                 print(error)
             }
@@ -52,21 +59,32 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return root?.company.employees.count ?? 0
     }
     
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 2
+    }
+    
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         return root?.company.employees[section].nameEmployee
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if let company = company {
-            return company.employees.count
-        }
-        return 0
+    func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        guard let header = view as? UITableViewHeaderFooterView else { return }
+        header.textLabel?.textColor = UIColor.black
+        header.textLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        header.textLabel?.frame = header.bounds
+        header.textLabel?.textAlignment = .left
     }
     
+
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let text = root?.company.employees[indexPath.item].nameEmployee
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = text
+        let person = root?.company.employees[indexPath.section]
+        if indexPath.row == 0 {
+            cell.textLabel?.text = "Phone number: \(person?.phoneNumber ?? "")"
+        } else {
+            cell.textLabel?.text = "Skills: \(person?.skills.joined(separator: ", ") ?? "")"
+        }
         return cell
     }
 }
