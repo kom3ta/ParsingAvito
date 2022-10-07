@@ -47,8 +47,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             do{
                 let decoder = JSONDecoder()
                 let root = try decoder.decode(Root.self, from: data)
-                print(root.company.employees.count)
                 self.root = root
+                let sortedEmployee = self.root?.company.employees.sorted {$0.nameEmployee < $1.nameEmployee} ?? []
+                self.root?.company.employees = sortedEmployee
             }catch{
                 print(error)
             }
